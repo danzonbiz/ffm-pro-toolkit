@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FFM Toolkit &ndash; Formula Flipping Mobil</title>
+<meta name="description" content="Toolkit digital untuk menjalankan bisnis flipping mobil: kalkulator untung unit, checklist risiko, dan generator copy iklan.">
+<meta name="theme-color" content="#9c3f10">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===== AUTH: LOGIN ===== -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <img src="icons/logo-caf.png" alt="Cuan Auto Flip Team" class="auth-logo">
+    <h1 class="auth-title">FFM Toolkit</h1>
+    <p class="auth-subtitle">Masuk untuk mengakses toolkit flipping mobilmu.</p>
+    <form id="login-form" class="auth-form">
+      <label>Username
+        <input type="text" id="login-username" autocomplete="username" required>
+      </label>
+      <label>Password
+        <input type="password" id="login-password" autocomplete="current-password" required>
+      </label>
+      <label class="auth-checkbox">
+        <input type="checkbox" id="login-show-pass"> Tampilkan password
+      </label>
+      <div class="auth-error" id="login-error" style="display:none"></div>
+      <button type="submit" class="btn btn-primary">Masuk</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== AUTH: GANTI PASSWORD (WAJIB SAAT PERTAMA LOGIN) ===== -->
+<div id="change-password-screen" class="auth-screen" style="display:none">
+  <div class="auth-card">
+    <img src="icons/logo-caf.png" alt="Cuan Auto Flip Team" class="auth-logo">
+    <h1 class="auth-title">Ganti Password</h1>
+    <p class="auth-subtitle">Demi keamanan, ganti password default sebelum melanjutkan. Password ini hanya tersimpan di perangkatmu.</p>
+    <form id="changepw-form" class="auth-form">
+      <label>Password Baru
+        <input type="password" id="changepw-new" minlength="6" required>
+      </label>
+      <label>Konfirmasi Password Baru
+        <input type="password" id="changepw-confirm" minlength="6" required>
+      </label>
+      <div class="auth-error" id="changepw-error" style="display:none"></div>
+      <button type="submit" class="btn btn-primary">Simpan Password Baru</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== APP SHELL (butuh login) ===== -->
+<div id="app-shell" style="display:none">
+
+<header class="app-header">
+  <img src="icons/icon-192.png" class="app-logo" alt="FFM Toolkit">
+  <div class="app-header-title">
+    <h1>FFM Toolkit</h1>
+    <p>Formula Flipping Mobil &mdash; MVP</p>
+  </div>
+  <img src="icons/logo-caf.png" alt="Cuan Auto Flip Team" class="header-caf-logo">
+  <span id="pro-badge" class="pro-badge" style="display:none">PRO</span>
+  <button type="button" id="upgrade-pro-btn" class="btn-link upgrade-btn">Upgrade ke Pro</button>
+  <button type="button" id="logout-btn" class="logout-btn" title="Keluar">Keluar</button>
+</header>
+
+<nav class="tabbar" id="tabbar">
+  <button class="tab-btn is-active" data-tab="kalkulator">Kalkulator</button>
+  <button class="tab-btn" data-tab="checklist">Checklist Risiko</button>
+  <button class="tab-btn" data-tab="adgen">Ad Generator</button>
+  <button class="tab-btn pro-tab" style="display:none" data-tab="riset">Riset Pasar</button>
+  <button class="tab-btn pro-tab" style="display:none" data-tab="aieyes">AI Eyes</button>
+  <button class="tab-btn pro-tab" style="display:none" data-tab="script">Script Assistant</button>
+  <button class="tab-btn pro-tab" style="display:none" data-tab="kotakuang">3 Kotak Uang</button>
+  <button class="tab-btn pro-tab" style="display:none" data-tab="dashboard">Dashboard</button>
+</nav>
+
+<main id="main">
+
+  <!-- ===== MODUL 3: KALKULATOR UNTUNG UNIT ===== -->
+  <section id="tab-kalkulator" class="tab-panel is-active">
+    <p class="section-desc">Hitung kelayakan satu unit sebelum diputuskan dibeli. Logika sama persis dengan sheet KALKULATOR_UNIT.</p>
+
+    <form id="unit-form" class="card form-grid">
+      <label>Kode Unit
+        <input type="text" id="unit-kode" placeholder="U001">
+      </label>
+      <label>Merek / Model
+        <input type="text" id="unit-merek" placeholder="Toyota Avanza G" required>
+      </label>
+      <label>Tahun
+        <input type="number" id="unit-tahun" placeholder="2018">
+      </label>
+      <label>Kota / Lokasi
+        <input type="text" id="unit-kota" placeholder="Jakarta">
+      </label>
+      <label>Harga Pasar Rata-rata (Rp)
+        <input type="number" id="unit-hargaPasar" min="0" required>
+      </label>
+      <label>Harga Beli (Rp)
+        <input type="number" id="unit-hargaBeli" min="0" required>
+      </label>
+      <label>Harga Jual Target (Rp)
+        <input type="number" id="unit-hargaJual" min="0" required>
+      </label>
+      <label>Lama Perputaran (hari)
+        <input type="number" id="unit-lamaPutar" min="0" placeholder="20">
+      </label>
+      <label>Biaya Poles / Salon (Rp)
+        <input type="number" id="unit-biayaPoles" min="0" value="0">
+      </label>
+      <label>Biaya Servis / Perbaikan (Rp)
+        <input type="number" id="unit-biayaServis" min="0" value="0">
+      </label>
+      <label>Biaya Pajak / Balik Nama (Rp)
+        <input type="number" id="unit-biayaPajak" min="0" value="0">
+      </label>
+      <label>Biaya Kirim / Ekspedisi (Rp)
+        <input type="number" id="unit-biayaKirim" min="0" value="0">
+      </label>
+      <label>Biaya Lain-lain (Rp)
+        <input type="number" id="unit-biayaLain" min="0" value="0">
+      </label>
+    </form>
+
+    <div class="card result-card" id="unit-result">
+      <!-- diisi via JS -->
+    </div>
+
+    <div class="edit-banner" id="unit-edit-banner" style="display:none">
+      Sedang mengedit: <strong id="unit-edit-banner-name"></strong>
+    </div>
+
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" id="unit-save">Simpan Unit</button>
+      <button type="button" class="btn btn-ghost" id="unit-reset">Reset Form</button>
+      <button type="button" class="btn btn-ghost" id="unit-cancel-edit" style="display:none">Batal Edit</button>
+    </div>
+
+    <h2 class="list-title">Riwayat Unit Tersimpan</h2>
+    <div id="unit-list" class="list-container"></div>
+  </section>
+
+  <!-- ===== MODUL 2 RINGKAS: CHECKLIST RISIKO ===== -->
+  <section id="tab-checklist" class="tab-panel">
+    <p class="section-desc">Skor cepat 10 aspek sebelum deal. Logika sama persis dengan sheet CHECKLIST_RISIKO (skor 0&ndash;2 per aspek, maksimal 20).</p>
+
+    <div class="card">
+      <label>Unit yang Disurvei
+        <select id="cl-unit-select"></select>
+      </label>
+      <label id="cl-label-manual-wrap">Nama / Kode Unit (manual)
+        <input type="text" id="cl-label-manual" placeholder="Toyota Avanza 2016 - survei hari ini">
+      </label>
+      <label>Tanggal
+        <input type="date" id="cl-date">
+      </label>
+    </div>
+
+    <div class="card" id="cl-aspects"></div>
+
+    <div class="card">
+      <label>Catatan
+        <textarea id="cl-catatan" rows="3" placeholder="Catatan tambahan hasil survei..."></textarea>
+      </label>
+    </div>
+
+    <div class="card result-card" id="cl-result"></div>
+
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" id="cl-save">Simpan Checklist</button>
+      <button type="button" class="btn btn-ghost" id="cl-reset">Reset</button>
+    </div>
+
+    <h2 class="list-title">Riwayat Checklist</h2>
+    <div id="checklist-list" class="list-container"></div>
+  </section>
+
+  <!-- ===== MODUL 5: AD COPY GENERATOR ===== -->
+  <section id="tab-adgen" class="tab-panel">
+    <p class="section-desc">Dari 50+ Copy Ad &ldquo;Mobil Cepat Laku&rdquo;. Pilih gaya, salin, tempel ke marketplace.</p>
+
+    <div class="subtabbar" id="adgen-subtabbar">
+      <button class="subtab-btn is-active" data-subtab="headline">Headline</button>
+      <button class="subtab-btn" data-subtab="caption">Caption</button>
+      <button class="subtab-btn" data-subtab="formula">Formula</button>
+      <button class="subtab-btn" data-subtab="template">Template</button>
+    </div>
+
+    <div id="adgen-content"></div>
+
+    <div class="card callout-box">
+      <strong>Checklist Menulis Copy yang Menjual</strong>
+      <ul id="adgen-checklist"></ul>
+    </div>
+
+    <h2 class="list-title">Riwayat Copy Tersimpan</h2>
+    <div id="adgen-history" class="list-container"></div>
+  </section>
+
+  <!-- ===== MODUL 1 (PRO): RISET PASAR & VALUE GAP SCANNER ===== -->
+  <section id="tab-riset" class="tab-panel">
+    <p class="section-desc">Catat listing harian untuk menemukan unit undervalue (Value Gap). Logika sama persis dengan sheet RISET_PASAR.</p>
+
+    <form id="riset-form" class="card form-grid">
+      <label>Tanggal Riset
+        <input type="date" id="riset-tanggal">
+      </label>
+      <label>Platform
+        <select id="riset-platform">
+          <option>OLX</option><option>Facebook</option><option>WA Group</option>
+          <option>Lelang</option><option>Instagram</option><option>Website</option><option>Lainnya</option>
+        </select>
+      </label>
+      <label>Merek / Model
+        <input type="text" id="riset-merek" placeholder="Toyota Avanza G" required>
+      </label>
+      <label>Tahun
+        <input type="number" id="riset-tahun">
+      </label>
+      <label>Lokasi
+        <input type="text" id="riset-lokasi">
+      </label>
+      <label>Harga Listing (Rp)
+        <input type="number" id="riset-hargaListing" min="0" required>
+      </label>
+      <label>KM
+        <input type="number" id="riset-km" min="0">
+      </label>
+      <label>Harga Pasar Rata-rata (Rp)
+        <input type="number" id="riset-hargaPasar" min="0" required>
+      </label>
+      <label>Link Iklan
+        <input type="text" id="riset-link" placeholder="https://...">
+      </label>
+      <label>Catatan
+        <input type="text" id="riset-catatan">
+      </label>
+    </form>
+
+    <div class="card result-card" id="riset-result"></div>
+
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" id="riset-save">Simpan Riset</button>
+      <button type="button" class="btn btn-ghost" id="riset-reset">Reset Form</button>
+    </div>
+
+    <h2 class="list-title">Riwayat Riset Pasar</h2>
+    <div id="riset-list" class="list-container"></div>
+  </section>
+
+  <!-- ===== MODUL 2 (PRO): AI EYES INSPECTION 7 PILAR ===== -->
+  <section id="tab-aieyes" class="tab-panel">
+    <p class="section-desc">Inspeksi lengkap 7 pilar berbobot dari ebook Checklist Rahasia. Pilar ke-7 (Nilai Pasar &amp; Potensi Cuan) otomatis dari data unit yang dipilih.</p>
+
+    <div class="card">
+      <label>Unit yang Diinspeksi
+        <select id="ai-unit-select"></select>
+      </label>
+      <label id="ai-label-manual-wrap">Nama / Kode Unit (manual)
+        <input type="text" id="ai-label-manual" placeholder="Toyota Avanza 2016 - inspeksi hari ini">
+      </label>
+    </div>
+
+    <div id="ai-pillars"></div>
+
+    <div class="card">
+      <label>Foto Inspeksi (opsional, otomatis dikompres)
+        <input type="file" id="ai-photos" accept="image/*" multiple>
+      </label>
+      <div id="ai-photo-preview" class="photo-preview-row"></div>
+    </div>
+
+    <div class="card result-card" id="ai-result"></div>
+
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" id="ai-save">Simpan Inspeksi</button>
+      <button type="button" class="btn btn-ghost" id="ai-reset">Reset</button>
+    </div>
+
+    <h2 class="list-title">Riwayat Inspeksi AI Eyes</h2>
+    <div id="ai-list" class="list-container"></div>
+  </section>
+
+  <!-- ===== MODUL 4 (PRO): SCRIPT ASSISTANT ===== -->
+  <section id="tab-script" class="tab-panel">
+    <p class="section-desc">100+ script siap pakai dari ebook Script Chat, 7 bagian sesuai sumber asli.</p>
+    <input type="search" id="script-search" placeholder="Cari kata kunci... (mis. nego, follow up, DP)" class="search-input">
+    <div class="subtabbar" id="script-subtabbar"></div>
+    <div id="script-content"></div>
+  </section>
+
+  <!-- ===== MODUL 6 (PRO): 3 KOTAK UANG & CASH FLOW ===== -->
+  <section id="tab-kotakuang" class="tab-panel">
+    <p class="section-desc">Bagi modal ke Capital, Operation, dan Profit Box. Logika sama persis dengan sheet 3_KOTAK_UANG (default 80/5/15).</p>
+
+    <form id="ku-settings-form" class="card form-grid">
+      <label>Total Modal Awal (Rp)
+        <input type="number" id="ku-modalAwal" min="0">
+      </label>
+      <label>% Capital Box
+        <input type="number" id="ku-pctCapital" min="0" max="1" step="0.01" value="0.8">
+      </label>
+      <label>% Operation Box
+        <input type="number" id="ku-pctOperation" min="0" max="1" step="0.01" value="0.05">
+      </label>
+      <label>% Profit Box
+        <input type="number" id="ku-pctProfit" min="0" max="1" step="0.01" value="0.15">
+      </label>
+    </form>
+    <div class="card result-card" id="ku-settings-result"></div>
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" id="ku-settings-save">Simpan Pengaturan</button>
+    </div>
+
+    <h2 class="list-title">Tracking Bulanan</h2>
+    <form id="ku-tracking-form" class="card form-grid">
+      <label>Bulan
+        <input type="text" id="ku-bulan" placeholder="Jan 2026">
+      </label>
+      <label>Modal Aktif di Unit (Rp)
+        <input type="number" id="ku-modalAktif" min="0">
+      </label>
+      <label>Profit Bulan Ini (Rp)
+        <input type="number" id="ku-profitBulan" min="0">
+      </label>
+      <label>Saldo Capital Box (Rp)
+        <input type="number" id="ku-saldoCapital" min="0">
+      </label>
+      <label>Saldo Operation Box (Rp)
+        <input type="number" id="ku-saldoOperation" min="0">
+      </label>
+      <label>Saldo Profit Box (Rp)
+        <input type="number" id="ku-saldoProfit" min="0">
+      </label>
+    </form>
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" id="ku-tracking-save">Simpan Bulan Ini</button>
+    </div>
+    <div id="ku-tracking-list" class="list-container"></div>
+  </section>
+
+  <!-- ===== MODUL 7 (PRO): HISTORY & DASHBOARD ===== -->
+  <section id="tab-dashboard" class="tab-panel">
+    <p class="section-desc">Riwayat transaksi (auto dari Kalkulator) dan ringkasan performa bisnis. Logika sama persis dengan sheet HISTORY_TRANSAKSI &amp; DASHBOARD.</p>
+
+    <div class="card result-card" id="dash-summary"></div>
+
+    <h2 class="list-title">Tambah Riwayat Transaksi</h2>
+    <form id="hist-form" class="card form-grid">
+      <label>Unit yang Terjual
+        <select id="hist-unit-select"></select>
+      </label>
+      <label>Tanggal Beli
+        <input type="date" id="hist-tglBeli">
+      </label>
+      <label>Tanggal Jual
+        <input type="date" id="hist-tglJual">
+      </label>
+      <label>Sumber Unit
+        <input type="text" id="hist-sumber" placeholder="OLX / Facebook / Relasi">
+      </label>
+      <label>Catatan Pelajaran
+        <textarea id="hist-catatan" rows="2"></textarea>
+      </label>
+    </form>
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" id="hist-save">Simpan Riwayat</button>
+    </div>
+
+    <h2 class="list-title">Riwayat Transaksi</h2>
+    <div id="hist-list" class="list-container"></div>
+  </section>
+
+</main>
+
+</div><!-- /#app-shell -->
+
+<div id="detail-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <button type="button" class="modal-close" id="detail-modal-close">&times;</button>
+    <h2 id="detail-modal-title">Detail Unit</h2>
+    <div id="detail-modal-body"></div>
+  </div>
+</div>
+
+<div id="upgrade-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <button type="button" class="modal-close" id="upgrade-modal-close">&times;</button>
+    <h2>Upgrade ke Pro</h2>
+    <p class="muted">Masukkan kode pembelian Pro yang dikirim setelah kamu checkout. Kode hanya berlaku sekali dan butuh koneksi internet saat pertama kali dipakai.</p>
+    <label>Kode Pembelian
+      <input type="text" id="upgrade-code-input" placeholder="FFM-PRO-XXXXXX" autocapitalize="characters">
+    </label>
+    <div class="auth-error" id="upgrade-error" style="display:none"></div>
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" id="upgrade-submit">Aktifkan Pro</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/auth.js"></script>
+<script src="js/data-adcopy.js"></script>
+<script src="js/data-aieyes.js"></script>
+<script src="js/data-scripts.js"></script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
