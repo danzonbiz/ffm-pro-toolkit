@@ -42,6 +42,7 @@ body { padding-bottom: 48px; }
   position: sticky;
   top: 0;
   z-index: 20;
+  flex-wrap: wrap;
 }
 .app-logo { width: 44px; height: 44px; border-radius: 10px; }
 .app-header h1 { margin: 0; font-size: 19px; }
@@ -282,7 +283,14 @@ textarea { resize: vertical; font-weight: 400; }
 .auth-form .btn-primary { width: 100%; }
 
 /* ============ HEADER: LOGO CAF + LOGOUT ============ */
-.app-header-title { flex: 1 1 auto; min-width: 0; }
+.app-header-title { flex: 1 1 auto; min-width: 140px; }
+.app-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
 .header-caf-logo {
   height: 34px;
   width: auto;
