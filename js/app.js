@@ -647,87 +647,23 @@
 
 
   /* =========================================================
-     PRO: UPGRADE / UNLOCK
+     SEMUA MODUL AKTIF (tidak ada lagi gerbang aktivasi Pro)
      ========================================================= */
-  var PRO_VERIFY_URL = "https://ffm-backend-xi.vercel.app/api/verify-code";
-  var proUnlocked = false;
-
-  function getDeviceId() {
-    return FFMDB.getSetting("device_id", null).then(function (id) {
-      if (id) return id;
-      var newId = "dev-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
-      return FFMDB.setSetting("device_id", newId).then(function () { return newId; });
-    });
+  function activateAllModules() {
+    renderUnitSelectForAI();
+    renderPillars();
+    renderAIResult();
+    renderAIList();
+    renderRisetResult();
+    renderRisetList();
+    renderScriptSubtabbar();
+    renderScriptContent();
+    renderKotakUangSettings();
+    renderKotakUangTracking();
+    renderUnitSelectForHistory();
+    renderHistoryList();
+    renderDashboardSummary();
   }
-
-  function applyProVisibility(unlocked) {
-    proUnlocked = unlocked;
-    document.querySelectorAll(".pro-tab").forEach(function (b) { b.style.display = unlocked ? "" : "none"; });
-    document.getElementById("pro-badge").style.display = unlocked ? "" : "none";
-    document.getElementById("upgrade-pro-btn").style.display = unlocked ? "none" : "";
-    if (unlocked) {
-      renderUnitSelectForAI();
-      renderPillars();
-      renderAIResult();
-      renderAIList();
-      renderRisetResult();
-      renderRisetList();
-      renderScriptSubtabbar();
-      renderScriptContent();
-      renderKotakUangSettings();
-      renderKotakUangTracking();
-      renderUnitSelectForHistory();
-      renderHistoryList();
-      renderDashboardSummary();
-    }
-  }
-
-  function openUpgradeModal() { document.getElementById("upgrade-modal").style.display = "flex"; }
-  function closeUpgradeModal() {
-    document.getElementById("upgrade-modal").style.display = "none";
-    document.getElementById("upgrade-error").style.display = "none";
-    document.getElementById("upgrade-code-input").value = "";
-  }
-  document.getElementById("upgrade-pro-btn").addEventListener("click", openUpgradeModal);
-  document.getElementById("upgrade-modal-close").addEventListener("click", closeUpgradeModal);
-  document.getElementById("upgrade-modal").addEventListener("click", function (e) {
-    if (e.target.id === "upgrade-modal") closeUpgradeModal();
-  });
-
-  document.getElementById("upgrade-submit").addEventListener("click", function () {
-    var input = document.getElementById("upgrade-code-input");
-    var code = input.value.trim().toUpperCase();
-    var errBox = document.getElementById("upgrade-error");
-    errBox.style.display = "none";
-    if (!code) { errBox.textContent = "Masukkan kode pembelian dulu."; errBox.style.display = "block"; return; }
-    var btn = document.getElementById("upgrade-submit");
-    btn.disabled = true;
-    btn.textContent = "Memeriksa...";
-    getDeviceId().then(function (deviceId) {
-      return fetch(PRO_VERIFY_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: code, deviceId: deviceId })
-      });
-    }).then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
-      .then(function (r) {
-        btn.disabled = false; btn.textContent = "Aktifkan Pro";
-        if (r.ok && r.data && r.data.valid) {
-          FFMDB.setSetting("pro_unlocked", true).then(function () {
-            closeUpgradeModal();
-            applyProVisibility(true);
-            toast("Pro aktif! Semua modul terbuka.");
-          });
-        } else {
-          errBox.textContent = (r.data && r.data.message) || "Kode tidak valid atau sudah dipakai.";
-          errBox.style.display = "block";
-        }
-      }).catch(function () {
-        btn.disabled = false; btn.textContent = "Aktifkan Pro";
-        errBox.textContent = "Gagal terhubung ke server verifikasi. Pastikan internet aktif lalu coba lagi.";
-        errBox.style.display = "block";
-      });
-  });
 
   /* =========================================================
      MODUL 1 (PRO) - RISET PASAR & VALUE GAP SCANNER
@@ -1286,9 +1222,7 @@
     renderAdChecklist();
     renderAdHistory();
 
-    FFMDB.getSetting("pro_unlocked", false).then(function (unlocked) {
-      applyProVisibility(!!unlocked);
-    });
+    activateAllModules();
 
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("service-worker.js").catch(function () {});
