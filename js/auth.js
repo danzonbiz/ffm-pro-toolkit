@@ -132,7 +132,26 @@
     document.dispatchEvent(new CustomEvent("ffm-authenticated"));
   }
 
+  /* Link reset password rahasia: buka ?resetpw=1 untuk mengembalikan
+     login ke default (flipper / FFMffm). HANYA menghapus data auth
+     (localStorage), TIDAK menyentuh IndexedDB tempat unit/checklist/
+     riset/cashflow tersimpan - jadi aman dipakai tanpa kehilangan data.
+     Link ini sengaja tidak ditautkan di UI - hanya dikirim manual oleh
+     tim Cuan Auto Flip Team saat ada laporan lupa password. */
+  function checkPasswordResetLink() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get("resetpw") === "1") {
+        localStorage.removeItem(LS_USER);
+        localStorage.removeItem(LS_SESSION);
+        var cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    } catch (e) { /* ignore */ }
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
+    checkPasswordResetLink();
     initLoginScreen();
     initChangePasswordScreen();
     initLogout();
