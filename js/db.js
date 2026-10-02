@@ -139,8 +139,48 @@ var FFMDB = (function () {
     });
   }
 
+  /* v1.1 - Backup/restore. replaceAll mengganti isi store yang disebut dengan
+     data backup (id asli dipertahankan supaya relasi unitId tetap valid). */
+  var ALL_STORES = ["units", "checklists", "adDrafts", "risetPasar", "aiEyes",
+    "kotakUangTracking", "historyTransaksi", "appSettings"];
+
+  function exportAll() {
+    return open().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var out = {};
+        var t = db.transaction(ALL_STORES, "readonly");
+        ALL_STORES.forEach(function (name) {
+          var req = t.objectStore(name).getAll();
+          req.onsuccess = function (e) { out[name] = e.target.result || []; };
+        });
+        t.oncomplete = function () { resolve(out); };
+        t.onerror = function (e) { reject(e.target.error); };
+        t.onabort = function (e) { reject(e.target.error); };
+      });
+    });
+  }
+
+  function replaceAll(data) {
+    return open().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var names = ALL_STORES.filter(function (n) { return Array.isArray(data[n]); });
+        if (!names.length) { reject(new Error("Backup tidak berisi data")); return; }
+        var t = db.transaction(names, "readwrite");
+        names.forEach(function (name) {
+          var store = t.objectStore(name);
+          store.clear();
+          data[name].forEach(function (row) { store.put(row); });
+        });
+        t.oncomplete = function () { resolve(names.length); };
+        t.onerror = function (e) { reject(e.target.error); };
+        t.onabort = function (e) { reject(e.target.error || new Error("Restore dibatalkan")); };
+      });
+    });
+  }
+
   return {
     add: add, put: put, remove: remove, getAll: getAll, get: get,
-    getSetting: getSetting, setSetting: setSetting
+    getSetting: getSetting, setSetting: setSetting,
+    exportAll: exportAll, replaceAll: replaceAll, STORES: ALL_STORES
   };
 })();

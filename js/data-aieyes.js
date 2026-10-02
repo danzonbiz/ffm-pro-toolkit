@@ -1,6 +1,9 @@
 /* Data Modul 2 - AI Eyes Inspection 7 Pilar (Pro)
    Sumber: E-BOOK BONUS "Checklist Rahasia Mobil Untung Instan".
-   7 pilar berbobot sesuai Bagian 7.2 ebook. Pilar ke-7 (Nilai Pasar &
+   7 pilar sesuai Bagian 7 ebook. CATATAN v1.1: AI Score dihitung dengan
+   rata-rata sederhana (total 7 pilar / 7), yaitu "versi lapangan" di ebook.
+   Field "weight" hanya dokumentasi bobot versi detail dan TIDAK dipakai
+   dalam perhitungan maupun ditampilkan di UI. Pilar ke-7 (Nilai Pasar &
    Potensi Cuan) TIDAK diisi manual - nilainya ditarik otomatis dari
    Harga Beli & Harga Pasar unit yang sama di Modul 1/3 (lihat app.js). */
 var AIEYES_PILLARS = [

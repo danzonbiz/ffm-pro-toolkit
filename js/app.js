@@ -271,6 +271,9 @@
         });
       }
       renderUnitSelectForChecklist();
+      // v1.1: dropdown unit di AI Eyes & Riwayat ikut diperbarui tanpa perlu buka ulang app
+      if (typeof renderUnitSelectForAI === "function") renderUnitSelectForAI();
+      if (typeof renderUnitSelectForHistory === "function") renderUnitSelectForHistory();
     });
   }
 
@@ -346,6 +349,11 @@
     });
   }
 
+  /* Aspek dealbreaker (v1.1): satu BAHAYA di Mesin, Surat, atau Pajak membatasi
+     kategori maksimal "Perlu Pertimbangan", meski total skor tinggi.
+     Dua atau lebih BAHAYA di aspek-aspek ini otomatis "Hindari". */
+  var RISK_DEALBREAKERS = ["mesin", "surat", "pajak"];
+
   function computeRisk() {
     var total = 0;
     RISK_ASPECTS.forEach(function (a) { total += RISK_SCORE[clState[a.key]] || 0; });
@@ -353,7 +361,14 @@
     if (total >= 16) kategori = "Sangat Layak";
     else if (total >= 13) kategori = "Perlu Pertimbangan";
     else kategori = "Hindari";
-    return { total: total, kategori: kategori };
+
+    var dealbreakers = RISK_ASPECTS.filter(function (a) {
+      return RISK_DEALBREAKERS.indexOf(a.key) !== -1 && clState[a.key] === "BAHAYA";
+    }).map(function (a) { return a.label; });
+    var capped = false;
+    if (dealbreakers.length >= 2 && kategori !== "Hindari") { kategori = "Hindari"; capped = true; }
+    else if (dealbreakers.length === 1 && kategori === "Sangat Layak") { kategori = "Perlu Pertimbangan"; capped = true; }
+    return { total: total, kategori: kategori, dealbreakers: dealbreakers, capped: capped };
   }
 
   function riskBadgeClass(kategori) {
@@ -370,6 +385,10 @@
       el("span", { class: "badge " + riskBadgeClass(r.kategori), text: r.kategori }),
       el("span", { class: "score-text", text: "Skor Total: " + r.total + " / 20" })
     ]));
+    if (r.dealbreakers && r.dealbreakers.length) {
+      box.appendChild(el("p", { class: "muted", text: "Peringatan dealbreaker: " + r.dealbreakers.join(", ") +
+        " berstatus BAHAYA." + (r.capped ? " Kategori diturunkan otomatis meski total skor tinggi." : "") }));
+    }
     return r;
   }
 
@@ -453,7 +472,8 @@
       catatan: document.getElementById("cl-catatan").value,
       aspects: Object.assign({}, clState),
       total: r.total,
-      kategori: r.kategori
+      kategori: r.kategori,
+      dealbreakers: r.dealbreakers || []
     };
     FFMDB.add("checklists", record).then(function () {
       toast("Checklist tersimpan");
@@ -806,7 +826,7 @@
     getSelectedAIUnit().then(function (unit) {
       AIEYES_PILLARS.forEach(function (p) {
         var card = el("div", { class: "card pillar-card" }, [
-          el("div", { class: "pillar-title", text: p.label + " (bobot " + Math.round(p.weight * 100) + "%)" })
+          el("div", { class: "pillar-title", text: p.label })
         ]);
         if (p.manual) {
           p.aspects.forEach(function (aspectLabel, idx) {
@@ -834,7 +854,7 @@
           var gap = unit ? unit.valueGap : null;
           var skor = aiEyesSkorCuanDariValueGap(gap);
           card.appendChild(el("div", { class: "pillar-auto-note", text: unit
-            ? ("Otomatis dari Value Gap unit terpilih (" + fmtPct(gap) + ") -> skor " + (skor || "-") + "/5"
+            ? ("Otomatis dari Value Gap unit terpilih (" + fmtPct(gap) + ") -> skor " + (skor || "-") + "/5. Pemetaan Value Gap: 15% ke atas = 5, 10-14,9% = 4, 5-9,9% = 3, 0-4,9% = 2, negatif = 1."
               )
             : "Pilih unit dari Kalkulator/Riset Pasar dulu supaya pilar ini terisi otomatis. Kalau manual, dianggap skor netral (3)." }));
         }
@@ -1184,26 +1204,28 @@
       .then(function (results) {
         var units = results[0], history = results[1], tracking = results[2];
         var totalUnit = units.length;
+        var unitTerjual = history.length;
         var totalProfitBersih = history.reduce(function (a, r) { return a + (r.profitBersih || 0); }, 0);
-        var avgProfitPerUnit = totalUnit > 0 ? totalProfitBersih / totalUnit : null;
+        var avgProfitPerUnit = unitTerjual > 0 ? totalProfitBersih / unitTerjual : null;
         var lamaVals = history.map(function (r) { return r.lamaTerjual; }).filter(function (v) { return v != null; });
         var avgLamaTerjual = lamaVals.length ? lamaVals.reduce(function (a, b) { return a + b; }, 0) / lamaVals.length : null;
         var totalProfitPerBulan = tracking.reduce(function (a, r) { return a + (r.profitBulan || 0); }, 0);
         var level;
-        if (totalUnit >= 60) level = "Level 4 - Pro";
-        else if (totalUnit >= 30) level = "Level 3 - Menengah";
-        else if (totalUnit >= 10) level = "Level 2 - Pemula Aktif";
+        if (unitTerjual >= 60) level = "Level 4 - Pro";
+        else if (unitTerjual >= 30) level = "Level 3 - Menengah";
+        else if (unitTerjual >= 10) level = "Level 2 - Pemula Aktif";
         else level = "Level 1 - Baru Mulai";
 
         var box = document.getElementById("dash-summary");
         box.innerHTML = "";
         box.appendChild(el("div", { class: "result-grid" }, [
-          el("div", { class: "result-item" }, [el("span", { class: "result-label", text: "Total Unit" }), el("span", { class: "result-value", text: String(totalUnit) })]),
+          el("div", { class: "result-item" }, [el("span", { class: "result-label", text: "Total Unit Dianalisis" }), el("span", { class: "result-value", text: String(totalUnit) })]),
+          el("div", { class: "result-item" }, [el("span", { class: "result-label", text: "Unit Terjual" }), el("span", { class: "result-value", text: String(unitTerjual) })]),
           el("div", { class: "result-item" }, [el("span", { class: "result-label", text: "Total Profit Bersih" }), el("span", { class: "result-value", text: fmtRp(totalProfitBersih) })]),
-          el("div", { class: "result-item" }, [el("span", { class: "result-label", text: "Rata-rata Profit / Unit" }), el("span", { class: "result-value", text: avgProfitPerUnit != null ? fmtRp(avgProfitPerUnit) : "-" })]),
+          el("div", { class: "result-item" }, [el("span", { class: "result-label", text: "Rata-rata Profit / Unit Terjual" }), el("span", { class: "result-value", text: avgProfitPerUnit != null ? fmtRp(avgProfitPerUnit) : "-" })]),
           el("div", { class: "result-item" }, [el("span", { class: "result-label", text: "Rata-rata Lama Terjual" }), el("span", { class: "result-value", text: avgLamaTerjual != null ? avgLamaTerjual.toFixed(1) + " hari" : "-" })]),
           el("div", { class: "result-item" }, [el("span", { class: "result-label", text: "Total Profit / Bulan (Tracking)" }), el("span", { class: "result-value", text: fmtRp(totalProfitPerBulan) })]),
-          el("div", { class: "result-item" }, [el("span", { class: "result-label", text: "Level Perkiraan" }), el("span", { class: "result-value", text: level })])
+          el("div", { class: "result-item" }, [el("span", { class: "result-label", text: "Level Perkiraan (dari unit terjual)" }), el("span", { class: "result-value", text: level })])
         ]));
       });
   }
