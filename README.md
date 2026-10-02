@@ -1,70 +1,43 @@
-# FFM Toolkit Pro
+# FFM Toolkit Pro v1.1
 
-Progressive Web App (PWA) offline-first untuk menjalankan bisnis flipping mobil bekas, dari riset unit sampai closing. Bagian dari ekosistem produk digital **Formula Flipping Mobil** oleh Cuan Auto Flip Team.
+Progressive Web App (PWA) offline-first pendamping ebook **Formula Flipping Mobil** oleh Cuan Auto Flip Team. Semua 8 modul terbuka sejak awal, tanpa kode aktivasi dan tanpa backend. Data bisnis tersimpan lokal di perangkat pengguna (IndexedDB).
 
-Semua data (unit, riset, inspeksi, riwayat transaksi) tersimpan lokal di device buyer lewat IndexedDB — tidak ada server database untuk data bisnis. Satu-satunya panggilan ke server terjadi sekali, saat buyer menukar kode pembelian Pro (lihat [FFM Pro Backend](#modul-pro--sistem-unlock)).
+## Modul
 
-## Fitur
+Kalkulator Untung Unit, Checklist Risiko, Ad Generator, Riset Pasar, AI Eyes (7 pilar), Script Assistant, 3 Kotak Uang, History & Dashboard.
 
-**Tersedia untuk semua pengguna:**
+## Perubahan v1.1 (dari Pro v1)
 
-| Modul | Fungsi |
-|---|---|
-| Kalkulator Untung Unit | Hitung kelayakan beli satu unit berbasis Value Gap, ROI, dan profit per hari |
-| Checklist Risiko | Skor cepat 10 aspek sebelum deal (skala 0-2 per aspek) |
-| Ad Generator | 50+ headline, caption, formula, dan template copy iklan siap pakai |
-
-**Terbuka setelah aktivasi kode Pro:**
-
-| Modul | Fungsi |
-|---|---|
-| Riset Pasar | Log listing harian dari berbagai platform, hitung Value Gap, tandai calon unit |
-| AI Eyes Inspection | Skoring 7 pilar berbobot (Data Awal, Eksterior, Interior, Mesin, Kelistrikan, Dokumen, Potensi Cuan) dengan lampiran foto |
-| Script Assistant | 100+ script chat siap pakai, 7 kategori sesuai tahap transaksi, bisa dicari |
-| 3 Kotak Uang | Alokasi modal (Capital/Operation/Profit) dan tracking cash flow bulanan |
-| History & Dashboard | Riwayat transaksi otomatis dari Kalkulator, ringkasan performa, dan level flipper |
-
-## Login Default
-
-```
-Username: flipper
-Password: FFMffm
-```
-
-Password wajib diganti saat login pertama. Ini gerbang lokal untuk UX, bukan autentikasi server — kalau password lupa, satu-satunya cara reset adalah clear semua data situs di browser (yang juga menghapus seluruh data bisnis tersimpan).
+1. Checklist Risiko: satu BAHAYA di Mesin, Surat, atau Pajak membatasi kategori maksimal "Perlu Pertimbangan". Dua atau lebih BAHAYA di aspek itu otomatis "Hindari". Aturan "dua atau lebih" adalah tambahan v1.1, hapus `dealbreakers.length >= 2` di `computeRisk()` kalau tidak diinginkan.
+2. AI Eyes: label "bobot %" dihapus dari UI. AI Score = rata-rata 7 pilar (total / 7), sama dengan "versi lapangan" di ebook bonus.
+3. AI Eyes pilar 7: pemetaan Value Gap ke skor 1-5 sekarang tampil di UI dan didokumentasikan di ebook (Lampiran B).
+4. Backup & Ekspor (tab Dashboard): backup JSON, pulihkan dari backup, CSV (Unit, Riset, Riwayat, 3 Kotak Uang), salin Unit untuk Excel, permintaan penyimpanan permanen, dan pengingat backup 7 hari.
+5. Dashboard: rata-rata profit per unit sekarang dibagi unit TERJUAL (bukan semua unit di Kalkulator). Level 1-4 juga berdasar unit terjual.
+6. Perbaikan bug: dropdown unit di AI Eyes dan Riwayat tidak ikut terisi setelah menyimpan unit baru sampai app dibuka ulang.
 
 ## Struktur File
 
 ```
 index.html          Struktur halaman & semua tab modul
-manifest.json        Konfigurasi PWA (nama, ikon, install)
-service-worker.js    Caching offline-first (network-first + fallback)
-css/style.css        Seluruh styling
-js/auth.js           Login gate & ganti password
-js/db.js             Wrapper IndexedDB (semua object store)
-js/app.js            Logika seluruh modul + unlock Pro
-js/data-adcopy.js    Data Modul Ad Generator
-js/data-aieyes.js    Data 7 pilar AI Eyes + formula skor
-js/data-scripts.js   Data Script Assistant (7 kategori)
-icons/               Ikon PWA & logo brand
+manifest.json       Konfigurasi PWA
+service-worker.js   Cache offline-first (cache ffm-toolkit-v5)
+css/style.css       Styling
+js/auth.js          Login gate lokal & ganti password
+js/db.js            Wrapper IndexedDB + exportAll/replaceAll (backup)
+js/app.js           Logika semua modul
+js/backup.js        Backup, restore, ekspor CSV (baru di v1.1)
+js/data-*.js        Data Ad Generator, AI Eyes, Script Assistant
+icons/              Ikon PWA & logo brand
 ```
 
 ## Deploy
 
-Static site, tanpa build step. Deploy langsung ke Vercel (atau hosting statis apa pun):
+Static site tanpa build step (Vercel atau hosting statis lain). Origin harus tetap sama dengan versi Pro v1 supaya data pengguna lama (IndexedDB per-domain) tidak hilang. Struktur IndexedDB tidak berubah (versi 2), jadi upgrade dari Pro v1 aman.
 
-1. Import repo ini sebagai project baru di Vercel, deploy dengan setting default.
-2. Pastikan `js/app.js` sudah menunjuk ke URL backend verifikasi kode yang benar (lihat variabel `PRO_VERIFY_URL`).
-3. Install sebagai app dari browser (Add to Home Screen) untuk pengalaman penuh offline.
+## Login
 
-## Modul Pro — Sistem Unlock
+Username `flipper`, password awal `FFMffm`, wajib diganti saat login pertama. Ini gerbang lokal (bukan autentikasi server). Password tidak ikut masuk file backup.
 
-App ini sengaja satu origin dengan versi non-Pro (bukan deployment terpisah) supaya data buyer yang sudah ada tidak pernah hilang saat upgrade — IndexedDB terikat per-domain, jadi origin harus tetap sama.
+## Arsip
 
-Modul Pro terbuka lewat kode pembelian sekali pakai yang diverifikasi ke backend terpisah ([FFM Pro Backend](https://github.com/) — repo API + admin panel generate kode). Setelah kode valid, status Pro disimpan lokal (`localStorage`/IndexedDB) dan tidak perlu verifikasi ulang kecuali data situs dibersihkan total.
-
-## Catatan Teknis
-
-- Tidak ada framework/build tool — vanilla JS (ES5-friendly), supaya ringan dan mudah di-debug tanpa toolchain.
-- IndexedDB versi 2: menambah object store baru untuk modul Pro tanpa pernah menghapus/mengubah store MVP yang sudah ada, jadi upgrade dari versi lama tetap aman.
-- Foto pada AI Eyes Inspection otomatis di-resize & dikompres di sisi klien sebelum disimpan, supaya kuota storage device tidak cepat penuh.
+Versi MVP v2 dan ffm-pro-backend sudah dipindahkan ke folder `Arsip` dan tidak dipakai lagi.

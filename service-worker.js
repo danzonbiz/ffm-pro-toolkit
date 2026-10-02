@@ -1,4 +1,4 @@
-var CACHE_NAME = "ffm-toolkit-v4";
+var CACHE_NAME = "ffm-toolkit-v5";
 var APP_SHELL = [
   "./index.html",
   "./manifest.json",
@@ -6,6 +6,7 @@ var APP_SHELL = [
   "./js/auth.js",
   "./js/db.js",
   "./js/app.js",
+  "./js/backup.js",
   "./js/data-adcopy.js",
   "./js/data-aieyes.js",
   "./js/data-scripts.js",
