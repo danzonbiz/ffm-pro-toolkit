@@ -13,6 +13,23 @@
 </head>
 <body>
 
+<!-- ===== AKTIVASI (hanya device baru yang belum pernah dipakai) ===== -->
+<div id="activation-screen" class="auth-screen" style="display:none">
+  <div class="auth-card">
+    <img src="icons/logo-caf.png" alt="Cuan Auto Flip Team" class="auth-logo">
+    <h1 class="auth-title">Aktivasi FFM Toolkit</h1>
+    <p class="auth-subtitle">Masukkan kode aktivasi yang dikirim ke email kamu setelah pembelian.</p>
+    <form id="activation-form" class="auth-form">
+      <label>Kode Aktivasi
+        <input type="text" id="activation-code-input" placeholder="FFM-PRO-XXXX-XXXX" autocapitalize="characters" required>
+      </label>
+      <div class="auth-error" id="activation-error" style="display:none"></div>
+      <button type="submit" class="btn btn-primary" id="activation-submit">Aktifkan</button>
+    </form>
+    <p class="muted" style="margin-top:14px;font-size:13px;">Belum dapat kode? Cek folder spam di email kamu, atau hubungi tim Cuan Auto Flip Team.</p>
+  </div>
+</div>
+
 <!-- ===== AUTH: LOGIN ===== -->
 <div id="auth-screen" class="auth-screen">
   <div class="auth-card">
@@ -412,6 +429,7 @@
 
 <div id="toast" class="toast"></div>
 
+<script src="js/activation.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/data-adcopy.js"></script>
 <script src="js/data-aieyes.js"></script>
