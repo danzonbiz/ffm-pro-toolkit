@@ -53,7 +53,7 @@
   }
 
   function show(id) {
-    ["auth-screen", "change-password-screen", "app-shell"].forEach(function (s) {
+    ["auth-screen", "change-password-screen", "app-shell", "activation-screen"].forEach(function (s) {
       document.getElementById(s).style.display = (s === id) ? "" : "none";
     });
   }
@@ -150,12 +150,7 @@
     } catch (e) { /* ignore */ }
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
-    checkPasswordResetLink();
-    initLoginScreen();
-    initChangePasswordScreen();
-    initLogout();
-
+  function proceedPastActivation() {
     var user = ensureSeedUser();
     if (isSessionActive() && !user.mustChangePassword) {
       enterApp();
@@ -163,6 +158,19 @@
       show("change-password-screen");
     } else {
       show("auth-screen");
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    checkPasswordResetLink();
+    initLoginScreen();
+    initChangePasswordScreen();
+    initLogout();
+
+    if (window.FFMActivation && window.FFMActivation.isRequired()) {
+      window.FFMActivation.show(proceedPastActivation);
+    } else {
+      proceedPastActivation();
     }
   });
 })();
