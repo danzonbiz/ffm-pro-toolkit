@@ -53,6 +53,8 @@
   }
 
   function show(id) {
+    // Gerbang aktivasi: selama belum aktif, hanya layar aktivasi yang boleh tampil.
+    if (window.FFMActivation && window.FFMActivation.isBlocking() && id !== "activation-screen") return;
     ["auth-screen", "change-password-screen", "app-shell", "activation-screen"].forEach(function (s) {
       document.getElementById(s).style.display = (s === id) ? "" : "none";
     });
@@ -68,6 +70,7 @@
     var form = document.getElementById("login-form");
     form.addEventListener("submit", function (e) {
       e.preventDefault();
+      if (window.FFMActivation && window.FFMActivation.isBlocking()) return;
       var username = document.getElementById("login-username").value.trim().toLowerCase();
       var password = document.getElementById("login-password").value;
       showError("login-error", "");

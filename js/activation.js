@@ -34,7 +34,10 @@ window.FFMActivation = (function () {
     }
   })();
 
+  var _pending = false; // true selama layar aktivasi tampil dan belum sukses
+
   function isRequired() { return _required; }
+  function isBlocking() { return _required && _pending; }
 
   function getDeviceId() {
     try {
@@ -53,7 +56,12 @@ window.FFMActivation = (function () {
     var errBox = document.getElementById("activation-error");
     var btn = document.getElementById("activation-submit");
 
+    ["auth-screen", "change-password-screen", "app-shell"].forEach(function (id) {
+      var n = document.getElementById(id);
+      if (n) n.style.display = "none";
+    });
     screen.style.display = "";
+    _pending = true;
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -77,6 +85,7 @@ window.FFMActivation = (function () {
         btn.textContent = "Aktifkan";
         if (r.ok && r.data && r.data.valid) {
           try { localStorage.setItem(LS_ACTIVATED, "1"); } catch (e) { /* abaikan */ }
+          _pending = false;
           screen.style.display = "none";
           onSuccess();
         } else {
@@ -92,5 +101,5 @@ window.FFMActivation = (function () {
     });
   }
 
-  return { isRequired: isRequired, show: show };
+  return { isRequired: isRequired, isBlocking: isBlocking, show: show };
 })();
